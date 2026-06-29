@@ -1,7 +1,5 @@
 # Project 3 — Multi-Tool Automation Orchestration
 
-**Portfolio project for the AI Automation Architect role**
-
 ---
 
 ## Business Problem

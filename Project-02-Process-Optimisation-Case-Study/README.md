@@ -1,7 +1,5 @@
 # Project 2 — Process Optimisation Case Study
 
-**Portfolio project for the AI Automation Architect role**
-
 ---
 
 ## Overview

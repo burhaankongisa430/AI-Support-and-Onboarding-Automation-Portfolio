@@ -1,7 +1,5 @@
 # Project 5 — AI Tool Evaluation Report
 
-**Portfolio project for the AI Automation Architect role**
-
 ---
 
 ## Overview

@@ -1,7 +1,5 @@
 # Project 1 — AI-Powered Support Ticket Triage System
 
-**Portfolio project for the AI Automation Architect role**
-
 ---
 
 ## Business Problem

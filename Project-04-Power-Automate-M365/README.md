@@ -1,7 +1,5 @@
 # Project 4 — Power Automate + Microsoft 365 Integration
 
-**Portfolio project for the AI Automation Architect role**
-
 ---
 
 ## Business Problem
