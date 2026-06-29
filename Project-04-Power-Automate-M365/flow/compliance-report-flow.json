@@ -1,0 +1,334 @@
+{
+  "properties": {
+    "displayName": "Weekly Compliance Report — Automated Distribution",
+    "description": "Pulls compliance check data from SharePoint weekly, validates completeness, generates an AI summary via Azure Function, logs to audit trail, and distributes to stakeholders via Outlook and Teams.",
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "displayName": "SharePoint",
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "shared_sharepointonline" },
+        "api": { "name": "shared_sharepointonline" }
+      },
+      "shared_office365": {
+        "displayName": "Office 365 Outlook",
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "shared_office365" },
+        "api": { "name": "shared_office365" }
+      },
+      "shared_teams": {
+        "displayName": "Microsoft Teams",
+        "runtimeSource": "embedded",
+        "connection": { "connectionReferenceLogicalName": "shared_teams" },
+        "api": { "name": "shared_teams" }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": { "defaultValue": {}, "type": "Object" },
+        "SharePointSiteUrl": {
+          "defaultValue": "https://yourorg.sharepoint.com/sites/Compliance",
+          "type": "String"
+        },
+        "ComplianceListName":       { "defaultValue": "Compliance Checks", "type": "String" },
+        "AuditLogListName":         { "defaultValue": "Report Audit Log",  "type": "String" },
+        "AISummaryFunctionUrl":     { "defaultValue": "https://your-function.azurewebsites.net/api/generate-summary", "type": "String" },
+        "AISummaryFunctionKey":     { "defaultValue": "", "type": "SecureString" },
+        "DistributionEmailList":    { "defaultValue": "compliance@yourorg.com;leadership@yourorg.com", "type": "String" },
+        "TeamsChannelId":           { "defaultValue": "", "type": "String" },
+        "TeamsGroupId":             { "defaultValue": "", "type": "String" }
+      },
+      "triggers": {
+        "Recurrence_Weekly_Monday": {
+          "type": "Recurrence",
+          "recurrence": {
+            "frequency": "Week",
+            "interval": 1,
+            "schedule": {
+              "weekDays": ["Monday"],
+              "hours": ["7"],
+              "minutes": ["0"]
+            },
+            "timeZone": "Eastern Standard Time"
+          }
+        }
+      },
+      "actions": {
+        "Initialize_ReportStartDate": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [{
+              "name": "ReportStartDate",
+              "type": "string",
+              "value": "@{formatDateTime(addDays(utcNow(), -7), 'yyyy-MM-ddTHH:mm:ssZ')}"
+            }]
+          },
+          "runAfter": {}
+        },
+        "Initialize_ReportTitle": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [{
+              "name": "ReportTitle",
+              "type": "string",
+              "value": "@{concat('Weekly Compliance Report — w/c ', formatDateTime(addDays(utcNow(), -7), 'dd MMM yyyy'))}"
+            }]
+          },
+          "runAfter": { "Initialize_ReportStartDate": ["Succeeded"] }
+        },
+        "Initialize_HasErrors": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [{
+              "name": "HasErrors",
+              "type": "boolean",
+              "value": false
+            }]
+          },
+          "runAfter": { "Initialize_ReportTitle": ["Succeeded"] }
+        },
+        "Scope_Try": {
+          "type": "Scope",
+          "actions": {
+            "Get_ComplianceItems": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_sharepointonline", "operationId": "GetItems" },
+                "parameters": {
+                  "dataset": "@parameters('SharePointSiteUrl')",
+                  "table": "@parameters('ComplianceListName')",
+                  "$filter": "Modified ge '@{variables('ReportStartDate')}'",
+                  "$orderby": "ComplianceArea asc, Modified desc",
+                  "$top": 500
+                }
+              },
+              "runAfter": {}
+            },
+            "Filter_ExcludeArchived": {
+              "type": "Query",
+              "inputs": {
+                "from": "@outputs('Get_ComplianceItems')?['body/value']",
+                "where": "@not(equals(item()?['Status'], 'Archived'))"
+              },
+              "runAfter": { "Get_ComplianceItems": ["Succeeded"] }
+            },
+            "Validate_RequiredFields": {
+              "type": "Select",
+              "inputs": {
+                "from": "@body('Filter_ExcludeArchived')",
+                "select": {
+                  "ID":              "@item()?['ID']",
+                  "ComplianceArea":  "@item()?['ComplianceArea']",
+                  "CheckName":       "@item()?['Title']",
+                  "Status":          "@item()?['Status']",
+                  "Owner":           "@item()?['Owner/DisplayName']",
+                  "DueDate":         "@item()?['DueDate']",
+                  "FindingCount":    "@item()?['FindingCount']",
+                  "RiskLevel":       "@item()?['RiskLevel']",
+                  "Notes":           "@item()?['Notes']",
+                  "MissingFields":   "@concat(if(empty(item()?['Owner']), 'Owner;', ''), if(empty(item()?['DueDate']), 'DueDate;', ''), if(empty(item()?['RiskLevel']), 'RiskLevel;', ''))"
+                }
+              },
+              "runAfter": { "Filter_ExcludeArchived": ["Succeeded"] }
+            },
+            "Filter_ItemsWithIssues": {
+              "type": "Query",
+              "inputs": {
+                "from": "@body('Validate_RequiredFields')",
+                "where": "@or(not(equals(item()?['Status'], 'Compliant')), greater(item()?['FindingCount'], 0), not(empty(item()?['MissingFields'])))"
+              },
+              "runAfter": { "Validate_RequiredFields": ["Succeeded"] }
+            },
+            "Compose_SummaryPayload": {
+              "type": "Compose",
+              "inputs": {
+                "report_title":    "@variables('ReportTitle')",
+                "report_period":   "@{formatDateTime(addDays(utcNow(), -7), 'dd MMM')} – @{formatDateTime(utcNow(), 'dd MMM yyyy')}",
+                "total_checks":    "@length(body('Validate_RequiredFields'))",
+                "items_with_issues": "@length(body('Filter_ItemsWithIssues'))",
+                "compliant_count": "@sub(length(body('Validate_RequiredFields')), length(body('Filter_ItemsWithIssues')))",
+                "items":           "@body('Filter_ItemsWithIssues')"
+              },
+              "runAfter": { "Filter_ItemsWithIssues": ["Succeeded"] }
+            },
+            "HTTP_GenerateAISummary": {
+              "type": "Http",
+              "inputs": {
+                "method": "POST",
+                "uri": "@parameters('AISummaryFunctionUrl')",
+                "headers": {
+                  "x-functions-key": "@parameters('AISummaryFunctionKey')",
+                  "Content-Type": "application/json"
+                },
+                "body": "@outputs('Compose_SummaryPayload')"
+              },
+              "runAfter": { "Compose_SummaryPayload": ["Succeeded"] }
+            },
+            "Parse_AISummaryResponse": {
+              "type": "ParseJson",
+              "inputs": {
+                "content": "@body('HTTP_GenerateAISummary')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "executive_summary": { "type": "string" },
+                    "key_findings":      { "type": "array", "items": { "type": "string" } },
+                    "risk_assessment":   { "type": "string" },
+                    "recommended_actions": { "type": "array", "items": { "type": "string" } },
+                    "trend_note":        { "type": "string" }
+                  }
+                }
+              },
+              "runAfter": { "HTTP_GenerateAISummary": ["Succeeded"] }
+            },
+            "Compose_HTMLReport": {
+              "type": "Compose",
+              "inputs": "@{concat('<html><body style=\"font-family:Segoe UI,sans-serif;max-width:800px;margin:auto;\">',\n'<h1 style=\"color:#0078D4;\">',variables('ReportTitle'),'</h1>',\n'<p><strong>Period:</strong> ',outputs('Compose_SummaryPayload')?['report_period'],'</p>',\n'<table style=\"border-collapse:collapse;width:100%\">',\n'<tr><td style=\"padding:8px;background:#f3f2f1;\"><strong>Total checks reviewed</strong></td><td style=\"padding:8px;\">',outputs('Compose_SummaryPayload')?['total_checks'],'</td></tr>',\n'<tr><td style=\"padding:8px;background:#f3f2f1;\"><strong>Compliant</strong></td><td style=\"padding:8px;color:green;\">',outputs('Compose_SummaryPayload')?['compliant_count'],'</td></tr>',\n'<tr><td style=\"padding:8px;background:#f3f2f1;\"><strong>Require attention</strong></td><td style=\"padding:8px;color:#d83b01;\">',outputs('Compose_SummaryPayload')?['items_with_issues'],'</td></tr>',\n'</table>',\n'<h2>Executive Summary</h2><p>',body('Parse_AISummaryResponse')?['executive_summary'],'</p>',\n'<h2>Risk Assessment</h2><p>',body('Parse_AISummaryResponse')?['risk_assessment'],'</p>',\n'<h2>Key Findings</h2><ul>',\njoin(body('Parse_AISummaryResponse')?['key_findings'], ''),\n'</ul>',\n'<h2>Recommended Actions</h2><ul>',\njoin(body('Parse_AISummaryResponse')?['recommended_actions'], ''),\n'</ul>',\n'<hr/><p style=\"color:#666;font-size:12px;\">Generated automatically by Power Automate on ',utcNow(),'</p>',\n'</body></html>')}\n",
+              "runAfter": { "Parse_AISummaryResponse": ["Succeeded"] }
+            },
+            "SharePoint_CreateAuditRecord": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_sharepointonline", "operationId": "PostItem" },
+                "parameters": {
+                  "dataset": "@parameters('SharePointSiteUrl')",
+                  "table": "@parameters('AuditLogListName')",
+                  "item": {
+                    "Title":              "@variables('ReportTitle')",
+                    "RunTimestamp":       "@utcNow()",
+                    "TotalChecks":        "@outputs('Compose_SummaryPayload')?['total_checks']",
+                    "ItemsWithIssues":    "@outputs('Compose_SummaryPayload')?['items_with_issues']",
+                    "AISummaryGenerated": true,
+                    "EmailSent":          false,
+                    "TeamsPostSent":      false,
+                    "RunStatus":          "In Progress"
+                  }
+                }
+              },
+              "runAfter": { "Compose_HTMLReport": ["Succeeded"] }
+            },
+            "Outlook_SendReport": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_office365", "operationId": "SendEmailV2" },
+                "parameters": {
+                  "emailMessage": {
+                    "To":      "@parameters('DistributionEmailList')",
+                    "Subject": "@variables('ReportTitle')",
+                    "Body":    "@outputs('Compose_HTMLReport')",
+                    "BodyType": "HTML",
+                    "Importance": "Normal"
+                  }
+                }
+              },
+              "runAfter": { "SharePoint_CreateAuditRecord": ["Succeeded"] }
+            },
+            "SharePoint_UpdateAuditRecord_EmailSent": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_sharepointonline", "operationId": "PatchItem" },
+                "parameters": {
+                  "dataset": "@parameters('SharePointSiteUrl')",
+                  "table":   "@parameters('AuditLogListName')",
+                  "id":      "@outputs('SharePoint_CreateAuditRecord')?['body/ID']",
+                  "item": { "EmailSent": true }
+                }
+              },
+              "runAfter": { "Outlook_SendReport": ["Succeeded"] }
+            },
+            "Teams_PostSummaryCard": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_teams", "operationId": "PostMessageToConversation" },
+                "parameters": {
+                  "poster": "Flow bot",
+                  "location": "Channel",
+                  "body": {
+                    "recipient": {
+                      "groupId":   "@parameters('TeamsGroupId')",
+                      "channelId": "@parameters('TeamsChannelId')"
+                    },
+                    "messageBody": "@{concat('<h3>',variables('ReportTitle'),'</h3>',\n'<p>',body('Parse_AISummaryResponse')?['executive_summary'],'</p>',\n'<p><strong>Checks reviewed:</strong> ',outputs('Compose_SummaryPayload')?['total_checks'],\n' &nbsp;|&nbsp; <strong style=\"color:red;\">Require attention:</strong> ',outputs('Compose_SummaryPayload')?['items_with_issues'],'</p>',\n'<p><em>Full report distributed via email.</em></p>')}"
+                  }
+                }
+              },
+              "runAfter": { "SharePoint_UpdateAuditRecord_EmailSent": ["Succeeded"] }
+            },
+            "SharePoint_UpdateAuditRecord_Complete": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_sharepointonline", "operationId": "PatchItem" },
+                "parameters": {
+                  "dataset": "@parameters('SharePointSiteUrl')",
+                  "table":   "@parameters('AuditLogListName')",
+                  "id":      "@outputs('SharePoint_CreateAuditRecord')?['body/ID']",
+                  "item": {
+                    "TeamsPostSent": true,
+                    "RunStatus":     "Completed"
+                  }
+                }
+              },
+              "runAfter": { "Teams_PostSummaryCard": ["Succeeded"] }
+            }
+          },
+          "runAfter": { "Initialize_HasErrors": ["Succeeded"] }
+        },
+        "Scope_Catch": {
+          "type": "Scope",
+          "actions": {
+            "Set_HasErrors": {
+              "type": "SetVariable",
+              "inputs": { "name": "HasErrors", "value": true },
+              "runAfter": {}
+            },
+            "Compose_ErrorDetails": {
+              "type": "Compose",
+              "inputs": {
+                "flow_run_id":  "@workflow()?['run']?['name']",
+                "failed_action": "@{actions('Scope_Try')?['error']?['message']}",
+                "timestamp":    "@utcNow()",
+                "report_title": "@variables('ReportTitle')"
+              },
+              "runAfter": { "Set_HasErrors": ["Succeeded"] }
+            },
+            "SharePoint_LogError": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_sharepointonline", "operationId": "PostItem" },
+                "parameters": {
+                  "dataset": "@parameters('SharePointSiteUrl')",
+                  "table":   "@parameters('AuditLogListName')",
+                  "item": {
+                    "Title":      "@{concat('[FAILED] ', variables('ReportTitle'))}",
+                    "RunStatus":  "Failed",
+                    "ErrorDetails": "@{outputs('Compose_ErrorDetails')}",
+                    "RunTimestamp": "@utcNow()"
+                  }
+                }
+              },
+              "runAfter": { "Compose_ErrorDetails": ["Succeeded"] }
+            },
+            "Outlook_SendFailureAlert": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": { "connectionName": "shared_office365", "operationId": "SendEmailV2" },
+                "parameters": {
+                  "emailMessage": {
+                    "To":       "@parameters('DistributionEmailList')",
+                    "Subject":  "@{concat('[ACTION REQUIRED] Compliance report failed — ', variables('ReportTitle'))}",
+                    "Body":     "@{concat('<p>The automated compliance report failed to complete this week.</p><p><strong>Error:</strong> ',actions('Scope_Try')?['error']?['message'],'</p><p><strong>Flow run ID:</strong> ',workflow()?['run']?['name'],'</p><p>Please review the audit log in SharePoint and run the report manually if required.</p>')}",
+                    "BodyType": "HTML",
+                    "Importance": "High"
+                  }
+                }
+              },
+              "runAfter": { "SharePoint_LogError": ["Succeeded"] }
+            }
+          },
+          "runAfter": { "Scope_Try": ["Failed", "TimedOut"] }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "_comment": "Sample Azure Function response (Claude output) for the 18 Nov 2024 report — anonymised",
+  "executive_summary": "This week's compliance review across 47 checks identified 8 items requiring attention, with 3 rated High risk — an elevated posture compared to the recent average of 1–2 high-risk open items. The most urgent concerns are an unowned vendor security assessment that is overdue and has no assigned remediation owner, and an external penetration test that has returned a critical finding currently under review. The overall compliance rate of 83% (39/47) remains within acceptable range, but the concentration of high-risk items in IT Security and Data Privacy warrants leadership attention before year-end.",
+  "risk_assessment": "Overall risk level this week is HIGH, driven primarily by the unowned vendor security assessment (no owner, no due date, High risk) and the critical penetration test finding currently in remediation planning. Neither item has a confirmed resolution timeline.",
+  "key_findings": [
+    "<li><strong>[High Risk — Operational]</strong> Vendor Security Assessment (Cloud Storage Provider) is overdue with no assigned owner following the responsible employee's departure. This item has no due date and represents a governance gap.</li>",
+    "<li><strong>[High Risk — IT Security]</strong> External penetration test returned 4 findings including 1 critical. Remediation plan is due 29 Nov — this is a hard deadline that should be tracked closely.</li>",
+    "<li><strong>[High Risk — Data Privacy]</strong> GDPR Data Retention: 3 legacy customer record sets exceed the policy maximum retention period. Remediation is in progress but not yet completed.</li>",
+    "<li><strong>[High Risk — IT Security]</strong> MFA enrolment: 4 privileged accounts remain without multi-factor authentication. IT enforcement policy deployment is underway.</li>",
+    "<li><strong>[Data quality]</strong> 2 items (Vendor Assessment and SOC 2 Evidence Collection) are missing required Due Date fields. These cannot be SLA-tracked until dates are assigned.</li>"
+  ],
+  "recommended_actions": [
+    "<li><strong>By 27 Nov — Compliance Manager:</strong> Assign an owner and remediation due date to the Vendor Security Assessment (Item #35). This item cannot be tracked or escalated without an owner on record.</li>",
+    "<li><strong>By 29 Nov — James Thornton / IT Security:</strong> Submit the penetration test remediation plan. The critical finding must have a confirmed resolution date before the compliance report goes to the board.</li>",
+    "<li><strong>By 29 Nov — Priya Nair / HR:</strong> Chase the 11 outstanding Data Handling training completions. The extended deadline expires Friday — a final reminder email to managers is recommended today.</li>",
+    "<li><strong>By 6 Dec — Maria Santos / Finance:</strong> Confirm the SOC 2 evidence collection due date with auditors and update the SharePoint record to enable SLA tracking.</li>"
+  ],
+  "trend_note": "With 8 items requiring attention this week (vs a recent 4-week average of 5), this is an above-average week — likely reflecting year-end audit preparation activity rather than a structural compliance deterioration."
+}

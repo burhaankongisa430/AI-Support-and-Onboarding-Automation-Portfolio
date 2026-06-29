@@ -1,0 +1,13 @@
+{
+  "_comment": "Sample POST body sent to /webhook/onboard — anonymised for portfolio display",
+  "first_name": "Jordan",
+  "last_name": "Adeyemi",
+  "email": "jordan.adeyemi@nexalogistics.example",
+  "company_name": "Nexa Logistics",
+  "industry": "Logistics & Supply Chain",
+  "company_size": "51-200",
+  "plan": "professional",
+  "account_manager": "Sarah Chen",
+  "use_case": "Automating delivery exception handling to reduce manual follow-up calls to customers",
+  "source": "google_form"
+}

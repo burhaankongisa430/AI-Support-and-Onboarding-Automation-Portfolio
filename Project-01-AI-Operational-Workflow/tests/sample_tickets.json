@@ -1,0 +1,50 @@
+[
+  {
+    "id": "sample-01",
+    "email": "alex.chen@example.com",
+    "subject": "URGENT — cannot log in, account locked",
+    "body": "Hi, I have been completely locked out of my account since yesterday morning. I tried the password reset but the email never arrived. I have an important client meeting in 2 hours and absolutely need access to my files. I have tried three times now. Please help immediately.",
+    "source": "form",
+    "expected": {
+      "urgency": "Critical",
+      "category": "Technical",
+      "sentiment": "Frustrated"
+    }
+  },
+  {
+    "id": "sample-02",
+    "email": "priya.sharma@example.com",
+    "subject": "Question about my invoice for June",
+    "body": "Hello, I noticed that my invoice for June shows a charge of $149 but I thought my plan was $99 per month. Could you please explain what the extra $50 is for? I don't recall agreeing to any upgrade. Thanks.",
+    "source": "email",
+    "expected": {
+      "urgency": "Medium",
+      "category": "Billing",
+      "sentiment": "Neutral"
+    }
+  },
+  {
+    "id": "sample-03",
+    "email": "james.okafor@example.com",
+    "subject": "Would love a dark mode option",
+    "body": "Hey team! Love the product. One thing that would make it even better — a dark mode for the dashboard. I use it late at night and the bright screen is a bit much. Not urgent at all, just a thought. Keep up the great work!",
+    "source": "form",
+    "expected": {
+      "urgency": "Low",
+      "category": "Feature Request",
+      "sentiment": "Positive"
+    }
+  },
+  {
+    "id": "sample-04",
+    "email": "sara.muller@example.com",
+    "subject": "Export to CSV is broken — data missing",
+    "body": "When I export my report to CSV the date column is completely empty. This has been happening for the past three days across different browsers (Chrome and Firefox). I rely on this export for a weekly report I send to my manager. The rest of the data looks fine but the missing dates make the file useless.",
+    "source": "zapier",
+    "expected": {
+      "urgency": "High",
+      "category": "Bug Report",
+      "sentiment": "Negative"
+    }
+  }
+]

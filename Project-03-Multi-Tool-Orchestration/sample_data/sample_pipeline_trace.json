@@ -1,0 +1,44 @@
+{
+  "_comment": "Sample pipeline trace response — anonymised for portfolio display",
+  "run_id": "RUN-4A3B2C1D",
+  "client_id": "CLT-F7E6D5",
+  "started_at": "2024-11-14T09:32:01.441Z",
+  "completed_at": "2024-11-14T09:32:03.887Z",
+  "total_duration_ms": 2446,
+  "outcome": "success",
+  "steps": [
+    {
+      "step": "crm_create",
+      "status": "success",
+      "at": "2024-11-14T09:32:01.443Z",
+      "duration_ms": 341,
+      "crm_record_id": "recXXXXXXXXXXXXXX"
+    },
+    {
+      "step": "email_generate",
+      "status": "success",
+      "at": "2024-11-14T09:32:01.785Z",
+      "duration_ms": 1204,
+      "subject": "Fewer exception calls, more deliveries on time — let's get started"
+    },
+    {
+      "step": "email_send",
+      "status": "success",
+      "at": "2024-11-14T09:32:02.990Z",
+      "duration_ms": 287,
+      "message_id": "d3b07384d113edec49eaa6238ad5ff00"
+    },
+    {
+      "step": "slack_notify",
+      "status": "success",
+      "at": "2024-11-14T09:32:03.278Z",
+      "duration_ms": 412
+    },
+    {
+      "step": "crm_update",
+      "status": "success",
+      "at": "2024-11-14T09:32:03.691Z",
+      "duration_ms": 196
+    }
+  ]
+}

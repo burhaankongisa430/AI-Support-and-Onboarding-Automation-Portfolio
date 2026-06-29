@@ -1,0 +1,106 @@
+{
+  "_comment": "Sample payload sent from Power Automate to the Azure Function — anonymised",
+  "report_title": "Weekly Compliance Report — w/c 18 Nov 2024",
+  "report_period": "18 Nov – 25 Nov 2024",
+  "total_checks": 47,
+  "items_with_issues": 8,
+  "compliant_count": 39,
+  "items": [
+    {
+      "ID": 12,
+      "ComplianceArea": "Data Privacy",
+      "CheckName": "GDPR Data Retention Policy — Customer Records",
+      "Status": "Non-Compliant",
+      "Owner": "Aisha Okonkwo",
+      "DueDate": "2024-11-30",
+      "FindingCount": 3,
+      "RiskLevel": "High",
+      "Notes": "Three legacy customer record sets identified with retention periods exceeding policy maximum. Remediation in progress.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 18,
+      "ComplianceArea": "IT Security",
+      "CheckName": "Multi-Factor Authentication Coverage",
+      "Status": "In Remediation",
+      "Owner": "James Thornton",
+      "DueDate": "2024-12-15",
+      "FindingCount": 1,
+      "RiskLevel": "High",
+      "Notes": "4 privileged accounts not yet enrolled in MFA. IT team deploying enforcement policy this week.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 23,
+      "ComplianceArea": "Financial Controls",
+      "CheckName": "Expense Approval Thresholds — Q4 Review",
+      "Status": "Under Review",
+      "Owner": "Maria Santos",
+      "DueDate": "2024-11-28",
+      "FindingCount": 0,
+      "RiskLevel": "Medium",
+      "Notes": "Annual review in progress. No findings yet — awaiting sign-off from CFO.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 31,
+      "ComplianceArea": "HR Compliance",
+      "CheckName": "Annual Training Completion — Data Handling",
+      "Status": "Non-Compliant",
+      "Owner": "Priya Nair",
+      "DueDate": "2024-11-29",
+      "FindingCount": 2,
+      "RiskLevel": "Medium",
+      "Notes": "11 of 67 staff not yet completed mandatory data handling training. Deadline extended to 29 Nov.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 35,
+      "ComplianceArea": "Operational",
+      "CheckName": "Vendor Security Assessment — Cloud Storage Provider",
+      "Status": "Non-Compliant",
+      "Owner": "",
+      "DueDate": "",
+      "FindingCount": 1,
+      "RiskLevel": "High",
+      "Notes": "Assessment overdue. Original owner left organisation — not yet reassigned.",
+      "MissingFields": "Owner;DueDate;"
+    },
+    {
+      "ID": 39,
+      "ComplianceArea": "Data Privacy",
+      "CheckName": "Cookie Consent Banner — Mobile App",
+      "Status": "In Remediation",
+      "Owner": "Tom Walsh",
+      "DueDate": "2024-12-06",
+      "FindingCount": 1,
+      "RiskLevel": "Medium",
+      "Notes": "Consent banner not triggering correctly on iOS 17. Dev fix in review.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 42,
+      "ComplianceArea": "IT Security",
+      "CheckName": "Penetration Test — Annual External Assessment",
+      "Status": "Under Review",
+      "Owner": "James Thornton",
+      "DueDate": "2024-12-20",
+      "FindingCount": 4,
+      "RiskLevel": "High",
+      "Notes": "External pen test completed. 4 findings under review: 1 critical, 2 medium, 1 low. Remediation plan due 29 Nov.",
+      "MissingFields": ""
+    },
+    {
+      "ID": 46,
+      "ComplianceArea": "Financial Controls",
+      "CheckName": "SOC 2 Evidence Collection — Access Controls",
+      "Status": "In Remediation",
+      "Owner": "Maria Santos",
+      "DueDate": "",
+      "FindingCount": 0,
+      "RiskLevel": "Medium",
+      "Notes": "Evidence collection 80% complete. Due date not yet confirmed with auditors.",
+      "MissingFields": "DueDate;"
+    }
+  ]
+}
