@@ -6,7 +6,7 @@
 
 This case study documents a real workflow automation initiative contributed to during employment at a large cloud services organisation (generalised to protect confidential information). The initiative automated the manual intake, classification, routing, and SLA enforcement process for an internal developer tooling support team.
 
-The project required no AI model — instead, it demonstrates **architect-level process thinking**: identifying the right level of complexity for a given problem, designing a solution that actually changes operational behaviour, and measuring the impact rigorously.
+The project required no AI model. Instead, it demonstrates **architect-level process thinking**: identifying the right level of complexity for a given problem, designing a solution that actually changes operational behaviour, and measuring the impact rigorously.
 
 ---
 
