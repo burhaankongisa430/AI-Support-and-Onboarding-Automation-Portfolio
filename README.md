@@ -1,4 +1,4 @@
-# AI Automation Architect Portfolio
+# AI-Support-Automation-Portfolio
 
 A portfolio of five projects structured as a deliberate progression; from embedding AI into a live operational workflow, through strategic process thinking, into multi-system orchestration, enterprise platform depth, and finally advisory-level tool evaluation. Moving through the projects from 1 to 5 is a clear arc: core AI integration skills, strategic architecture thinking, connected system design, enterprise Microsoft 365 depth, and the ability to advise leadership on platform investment decisions.
 
